@@ -1,82 +1,97 @@
-# Augustus - AI-Powered YouTube Learning Agent
+<div align="center">
 
-> Augustus is an AI agent for learning through YouTube videos. On the surface it looks simple, but it has agentic capabilities where it decides on searching the web at any step of answering your queries. It has contextual awareness and a world-class RAG system backed by Pinecone.
+# 🎬 Augustus
 
-[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-green.svg)](https://fastapi.tiangolo.com)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+### AI-Powered YouTube Learning Agent
+
+Chat with any YouTube video. Augustus retrieves answers from the transcript with RAG and decides on its own when to search the web for more.
+
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![LangChain](https://img.shields.io/badge/LangChain-Agent-1C3C3C?logo=langchain&logoColor=white)](https://www.langchain.com)
+[![Pinecone](https://img.shields.io/badge/Pinecone-Vector%20DB-000000?logo=pinecone&logoColor=white)](https://www.pinecone.io)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-NeonDB-4169E1?logo=postgresql&logoColor=white)](https://neon.tech)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+[Features](#-features) · [Quick Start](#-quick-start) · [API](#-api-reference) · [Architecture](#-architecture) · [Deployment](#-deployment) · [Roadmap](#-roadmap)
+
+</div>
+
+---
+
+## 📌 Overview
+
+Augustus looks like a simple Q&A tool, but under the hood it is a **LangChain ReAct agent**. For every question it decides whether the video transcript is enough or whether it should also search the web. It remembers the conversation, so follow-up questions just work.
 
 ---
 
 ## ✨ Features
 
-### **🤖 Intelligent AI Agent**
-- **Context-Aware Retrieval**: Agent orchestrates YouTube RAG and augments answers with Google Custom Search when necessary
-- **Conversation Memory**: Maintains conversation history across sessions
-- **Multi-Language Support**: Handles Hindi and English video transcripts
+| | Feature | Details |
+|---|---|---|
+| 🤖 | **Agentic reasoning** | The agent orchestrates YouTube RAG and falls back to Google Custom Search only when needed |
+| 🧠 | **Conversation memory** | Persistent sessions with follow-up question handling |
+| 🌐 | **Multi-language** | Handles Hindi and English video transcripts |
+| 📚 | **Advanced RAG** | Multi-query retrieval with contextual compression over OpenAI `text-embedding-3-large` embeddings |
+| 🗂️ | **Isolated user data** | Every user gets their own Pinecone index |
+| 🔐 | **Secure auth** | OAuth2 + JWT with scopes, bcrypt hashing, role-based access |
+| ☁️ | **Cloud-native** | NeonDB (serverless PostgreSQL), Alembic migrations, SSL/TLS, optimized connection pooling |
 
-### **📚 World-Class RAG System**
-- **Pinecone Vector Database**: User-specific isolated indexes
-- **Advanced Retrieval**: Multi-query retrieval with contextual compression
-- **Semantic Search**: Powered by OpenAI embeddings (text-embedding-3-large)
+---
 
-### **🔐 Enterprise-Grade Authentication**
-- **JWT Tokens**: Secure OAuth2 implementation with scopes
-- **User Management**: Registration, authentication, role-based access
-- **Session Management**: Persistent conversation contexts
+## 🧰 Tech Stack
 
-### **🗄️ Cloud-Native Architecture**
-- **NeonDB**: Serverless PostgreSQL with auto-suspend
-- **Alembic Migrations**: Version-controlled database schema
-- **Production-Ready**: Optimized connection pooling, SSL/TLS
+| Layer | Technology |
+|---|---|
+| **API** | FastAPI, Pydantic, Uvicorn |
+| **Agent / LLM** | LangChain (ReAct agent), OpenAI GPT-4o |
+| **Retrieval** | Pinecone, OpenAI `text-embedding-3-large` |
+| **Web search** | Google Custom Search |
+| **Database** | PostgreSQL (NeonDB), SQLAlchemy, Alembic |
+| **Auth** | OAuth2, JWT, bcrypt |
 
 ---
 
 ## 🚀 Quick Start
 
-### **Prerequisites**
+### Prerequisites
 
 - Python 3.10+
 - OpenAI API key
 - Pinecone API key
-- NeonDB account (or use local PostgreSQL)
+- NeonDB account (or a local PostgreSQL instance)
 
-### **Installation**
+### 1. Install
 
 ```bash
 # Clone the repository
 git clone https://github.com/piyush2118/augustus.git
 cd augustus
 
-# Create virtual environment
+# Create a virtual environment
 python -m venv myvenv
-source myvenv/bin/activate  # On Windows: myvenv\Scripts\activate
+source myvenv/bin/activate        # Windows: myvenv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### **Configuration**
-
-Create a `.env` file:
+### 2. Configure
 
 ```bash
-# Copy example file
 cp env.example .env
-
-# Edit with your credentials
-nano .env
 ```
 
-Required environment variables:
+Then edit `.env`:
+
 ```env
 # Database (NeonDB or local PostgreSQL)
 DATABASE_URL=postgresql://user:password@host:5432/database?sslmode=require
 
-# Security
-SECRET_KEY=your-64-char-random-key  # Generate: openssl rand -hex 32
+# Security (generate with: openssl rand -hex 32)
+SECRET_KEY=your-64-char-random-key
 
-# API Keys
+# API keys
 OPENAI_API_KEY=sk-your-openai-key
 PINECONE_API_KEY=your-pinecone-key
 
@@ -85,30 +100,34 @@ ENVIRONMENT=production
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-### **Database Setup**
+### 3. Set up the database
 
 ```bash
-# Run migrations to create tables
 alembic upgrade head
 ```
 
-### **Run the Application**
+### 4. Run
 
 ```bash
-# Start the server
 uvicorn main:app --reload
-
-# Visit API documentation
-open http://localhost:8000/docs
 ```
+
+Open **http://localhost:8000/docs** for the interactive Swagger UI.
 
 ---
 
-## 📖 API Documentation
+## 📖 API Reference
 
-### **Authentication**
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/signup` | ❌ | Register a new user |
+| `POST` | `/token` | ❌ | Sign in and get a JWT |
+| `POST` | `/` | ✅ | Ask a question about a YouTube video |
+| `GET` | `/health` | ❌ | Health check |
 
-#### **Sign Up**
+<details>
+<summary><b>🔑 Sign up</b></summary>
+
 ```http
 POST /signup
 Content-Type: application/json
@@ -120,7 +139,11 @@ Content-Type: application/json
 }
 ```
 
-#### **Sign In (Get JWT Token)**
+</details>
+
+<details>
+<summary><b>🔑 Sign in (get JWT token)</b></summary>
+
 ```http
 POST /token
 Content-Type: application/x-www-form-urlencoded
@@ -128,7 +151,8 @@ Content-Type: application/x-www-form-urlencoded
 username=johndoe&password=SecurePassword123!
 ```
 
-**Response**:
+**Response**
+
 ```json
 {
   "access_token": "eyJ0eXAiOiJKV1...",
@@ -137,7 +161,10 @@ username=johndoe&password=SecurePassword123!
 }
 ```
 
-### **YouTube Q&A**
+</details>
+
+<details>
+<summary><b>💬 YouTube Q&A</b></summary>
 
 ```http
 POST /
@@ -151,7 +178,8 @@ Content-Type: application/json
 }
 ```
 
-**Response**:
+**Response**
+
 ```json
 {
   "answer": "Based on the video transcript, this video discusses...",
@@ -160,81 +188,60 @@ Content-Type: application/json
 }
 ```
 
-### **Health Check**
-
-```http
-GET /health
-```
+</details>
 
 ---
 
 ## 🏗️ Architecture
 
-### **System Components**
-
-```
-┌─────────────────┐         ┌──────────────────┐         ┌─────────────────┐
-│   Client API    │────────>│   FastAPI App    │────────>│   NeonDB        │
-│  (JWT Auth)     │         │   (Augustus)     │         │  (PostgreSQL)   │
-└─────────────────┘         └────────┬─────────┘         └─────────────────┘
-                                     │
-                    ┌────────────────┼────────────────┐
-                    │                │                │
-               ┌────▼─────┐    ┌────▼─────┐    ┌────▼──────┐
-               │ OpenAI   │    │ Pinecone │    │ Google    │
-               │(GPT-4o)  │    │ (Vector  │    │ Custom    │
-               │          │    │  Store)  │    │  Search   │
-               └──────────┘    └──────────┘    └───────────┘
+```mermaid
+flowchart LR
+    A[Client<br/>JWT Auth] --> B[FastAPI App<br/>Augustus]
+    B --> C[(NeonDB<br/>PostgreSQL)]
+    B --> D[OpenAI<br/>GPT-4o]
+    B --> E[(Pinecone<br/>Vector Store)]
+    B --> F[Google<br/>Custom Search]
 ```
 
-### **Data Flow**
+### Data flow
 
-1. **User Authentication**: JWT token validation
-2. **Session Management**: Retrieve or create user session
-3. **Video Processing**: Extract transcript, translate if needed
-4. **Embedding**: Store in user-specific Pinecone index
-5. **Agent Reasoning**: Retrieve and synthesize context from the YouTube knowledge base and Google Custom Search
-6. **Response Generation**: GPT-4o-mini generates answer
-7. **Context Storage**: Save conversation in PostgreSQL
+1. **Authenticate**: validate the JWT
+2. **Session**: retrieve or create the user's session
+3. **Ingest**: extract the video transcript and translate if needed
+4. **Embed**: store embeddings in the user's own Pinecone index
+5. **Reason**: the agent retrieves from the transcript and, if needed, Google Custom Search
+6. **Respond**: GPT-4o generates the answer
+7. **Persist**: save the conversation in PostgreSQL
 
 ---
 
 ## 🗄️ Database Schema
 
-### **Users Table**
-- Authentication and user management
-- UUID primary key
-- bcrypt password hashing
-- OAuth2 scopes (read, write, admin)
-
-### **User Sessions Table**
-- Conversation context tracking
-- Video ID tracking for follow-up questions
-- 24-hour expiration with auto-cleanup
-
-### **Messages Table**
-- Conversation history (sliding window)
-- Human/AI/System/Tool messages
-- JSONB metadata for flexibility
+| Table | Purpose |
+|---|---|
+| **users** | UUID primary key, bcrypt password hashing, OAuth2 scopes (`read`, `write`, `admin`) |
+| **user_sessions** | Conversation context, video ID tracking for follow-ups, 24-hour expiry with auto-cleanup |
+| **messages** | Sliding-window history for Human / AI / System / Tool messages, JSONB metadata |
 
 ---
 
-## 🔒 Security Features
+## 🔒 Security
 
 - ✅ JWT authentication with OAuth2 scopes
 - ✅ bcrypt password hashing
-- ✅ Strong SECRET_KEY validation
+- ✅ Strong `SECRET_KEY` validation
 - ✅ SSL/TLS encryption (NeonDB)
 - ✅ CORS protection
 - ✅ Input validation (Pydantic)
 - ✅ SQL injection protection (SQLAlchemy)
-- ✅ User-specific data isolation (Pinecone indexes)
+- ✅ Per-user data isolation (separate Pinecone indexes)
 
 ---
 
-## 🚀 Deployment
+## ☁️ Deployment
 
-### **Railway**
+<details>
+<summary><b>Railway</b></summary>
 
 ```bash
 railway init
@@ -246,87 +253,93 @@ railway variables set ENVIRONMENT="production"
 railway up
 ```
 
-### **Render**
+</details>
 
-1. Connect GitHub repository
-2. Set environment variables in dashboard
+<details>
+<summary><b>Render</b></summary>
+
+1. Connect your GitHub repository
+2. Set the environment variables in the dashboard
 3. Deploy
 
-### **Environment Variables**
+</details>
 
-Required:
-- `DATABASE_URL` - NeonDB connection string
-- `SECRET_KEY` - 64-char random key
-- `OPENAI_API_KEY` - OpenAI API key
-- `PINECONE_API_KEY` - Pinecone API key
+### Environment variables
 
-Optional:
-- `ENVIRONMENT` - production/development (default: development)
-- `ACCESS_TOKEN_EXPIRE_MINUTES` - JWT expiration (default: 30)
-- `CORS_ORIGINS` - Allowed origins (default: *)
-
----
-
-## 📚 Documentation
-
-- **[Deployment Guide](DEPLOYMENT_READY_GUIDE.md)** - Complete deployment instructions
-- **[NeonDB Setup](README_NEONDB.md)** - Cloud database configuration
-- **[Authentication Guide](AUTH_README.md)** - Auth system details
-- **[Quick Start](QUICK_START.md)** - Getting started guide
-- **[Search Tool Update](README_TOOL_CHANGE.md)** - Summary of the DuckDuckGo removal
-- **[API Documentation](http://localhost:8000/docs)** - Interactive Swagger UI
+| Variable | Required | Description | Default |
+|---|:---:|---|---|
+| `DATABASE_URL` | ✅ | NeonDB connection string | - |
+| `SECRET_KEY` | ✅ | 64-char random key | - |
+| `OPENAI_API_KEY` | ✅ | OpenAI API key | - |
+| `PINECONE_API_KEY` | ✅ | Pinecone API key | - |
+| `ENVIRONMENT` | ❌ | `production` or `development` | `development` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | ❌ | JWT expiry | `30` |
+| `CORS_ORIGINS` | ❌ | Allowed origins | `*` |
 
 ---
 
 ## 🛠️ Development
 
-### **Project Structure**
+### Project structure
 
-```
+```text
 augustus/
-├── main.py                 # FastAPI application
-├── database.py             # Database models and configuration
-├── yt_to_id.py            # YouTube ID extraction utility
-├── requirements.txt        # Python dependencies
-├── alembic/               # Database migrations
+├── main.py              # FastAPI application
+├── database.py          # Database models and configuration
+├── yt_to_id.py          # YouTube ID extraction utility
+├── requirements.txt     # Python dependencies
+├── alembic/             # Database migrations
 │   ├── env.py
 │   └── versions/
-├── alembic.ini            # Alembic configuration
-├── env.example            # Environment variable template
-└── docs/                  # Documentation
+├── alembic.ini          # Alembic configuration
+├── env.example          # Environment variable template
+└── docs/                # Documentation
 ```
 
-### **Running Tests**
+### Running tests
 
 ```bash
-# Test authentication
-python test_auth_system.py
-
-# Test OAuth2 endpoints
-python test_oauth2_endpoints.py
-
-# Test deployment readiness
-python test_deployment_ready.py
+python test_auth_system.py          # Authentication
+python test_oauth2_endpoints.py     # OAuth2 endpoints
+python test_deployment_ready.py     # Deployment readiness
 ```
 
-### **Database Migrations**
+### Database migrations
 
 ```bash
-# Create new migration
-alembic revision --autogenerate -m "Description"
-
-# Apply migrations
-alembic upgrade head
-
-# Rollback migration
-alembic downgrade -1
+alembic revision --autogenerate -m "Description"   # Create
+alembic upgrade head                                # Apply
+alembic downgrade -1                                # Roll back
 ```
+
+---
+
+## 📚 Documentation
+
+- [Deployment Guide](DEPLOYMENT_READY_GUIDE.md): complete deployment instructions
+- [NeonDB Setup](README_NEONDB.md): cloud database configuration
+- [Authentication Guide](AUTH_README.md): auth system details
+- [Quick Start](QUICK_START.md): getting started guide
+- [Search Tool Update](README_TOOL_CHANGE.md): summary of the DuckDuckGo removal
+- [API Docs](http://localhost:8000/docs): interactive Swagger UI (when running locally)
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Email verification for user registration
+- [ ] Password reset
+- [ ] Rate limiting on auth endpoints
+- [ ] Webhook support for real-time notifications
+- [ ] Multi-video conversations
+- [ ] Export conversation history
+- [ ] Analytics dashboard
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome!
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -338,44 +351,16 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
+Distributed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ## 🙏 Acknowledgments
 
-- **FastAPI** - Modern web framework
-- **LangChain** - LLM framework
-- **Pinecone** - Vector database
-- **OpenAI** - Language models
-- **NeonDB** - Serverless PostgreSQL
-- **Alembic** - Database migrations
+[FastAPI](https://fastapi.tiangolo.com) · [LangChain](https://www.langchain.com) · [Pinecone](https://www.pinecone.io) · [OpenAI](https://openai.com) · [NeonDB](https://neon.tech) · [Alembic](https://alembic.sqlalchemy.org)
 
 ---
 
-## 📞 Support
-
-For questions or issues:
-- Open an issue on GitHub
-- Check the documentation in the `docs/` folder
-- Review the comprehensive guides (20+ documentation files)
-
----
-
-## 🌟 Features Roadmap
-
-- [ ] Email verification for user registration
-- [ ] Password reset functionality
-- [ ] Rate limiting on auth endpoints
-- [ ] Webhook support for real-time notifications
-- [ ] Multi-video conversation support
-- [ ] Export conversation history
-- [ ] Advanced analytics dashboard
-
----
+<div align="center">
 
 **Built with ❤️ using FastAPI, LangChain, and NeonDB**
 
-#   a u g u s t u s - m a i n 
- 
- 
+</div>
