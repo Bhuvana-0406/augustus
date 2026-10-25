@@ -65,7 +65,7 @@ Augustus looks like a simple Q&A tool, but under the hood it is a **LangChain Re
 
 ```bash
 # Clone the repository
-git clone https://github.com/piyush2118/augustus.git
+git clone https://github.com/Bhuvana-0406/augustus.git
 cd augustus
 
 # Create a virtual environment
